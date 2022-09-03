@@ -1,0 +1,11 @@
+terraform
+vendor
+.dockerignore
+.envrc
+.envrc.example
+.gitignore
+Dockerfile
+README.md
+credentials.json
+deploy.sh
+test.sh
