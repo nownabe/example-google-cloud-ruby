@@ -1,0 +1,5 @@
+# Set your own project ID
+export PROJECT_ID="YOUR-PROJECT-ID"
+
+# Do not edit
+export TF_VAR_project_id="$PROJECT_ID"
