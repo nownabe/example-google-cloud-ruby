@@ -1,5 +1,9 @@
 # Example: Cloud Run with Memorystore for Redis
 
+An example Ruby app running on Cloud Run to use Memorystore for Redis instance in four way: without any security options, with AUTH enabled, with TLS enabled, and with both AUTH and TLS enabled.
+
+📰 Japanese Article: [セキュリティが有効な Memorystore for Redis に Ruby から接続する方法](https://zenn.dev/nownabe/articles/memorystore-for-redis-security-with-ruby)
+
 ## Prerequisites
 
 * Cloud SDK (gcloud) 400.0.0
