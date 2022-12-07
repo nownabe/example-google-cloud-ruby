@@ -1,0 +1,16 @@
+default: &default
+  adapter: spanner
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  project: <%= ENV.fetch("SPANNER_PROJECT_ID", "rails-on-spanner") %>
+  instance: <%= ENV.fetch("SPANNER_INSTANCE_ID", "rails-on-spanner") %>
+  database: <%= ENV.fetch("SPANNER_DATABASE_ID", "rails-on-spanner") %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+  emulator_host: "localhost:9010"
+
+production:
+  <<: *default
