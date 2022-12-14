@@ -18,5 +18,7 @@ module RailsOnSpanner
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    config.active_record.partial_inserts = true
   end
 end
