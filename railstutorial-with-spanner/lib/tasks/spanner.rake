@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "google/cloud/spanner"
-require "google/cloud/spanner/admin/instance"
+require "cloud_spanner_admin"
 
 namespace :spanner do
   namespace :instance do
@@ -9,34 +8,8 @@ namespace :spanner do
       config = ActiveRecord::Base.configurations
                                  .find_db_config(Rails.env)
                                  .configuration_hash
-      admin = Google::Cloud::Spanner::Admin::Instance
-              .instance_admin(project_id: config[:project])
-
-      project = config[:project]
-      instance = config[:instance]
-
-      project_path = admin.project_path(project:)
-      instance_path = admin.instance_path(project:, instance:)
-      instance_config = ENV.fetch("SPANNER_INSTANCE_CONFIG", "regional-asia-northeast1")
-      instance_config_path = admin.instance_config_path(project:, instance_config:)
-
-      instance = {
-        name: instance_path,
-        config: instance_config_path,
-        display_name: config[:instance]
-      }
-
-      if ENV["SPANNER_INSTANCE_NODE_COUNT"]
-        instance[:node] = ENV["SPANNER_INSTANCE_NODE_COUNT"].to_i
-      else
-        instance[:processing_units] = 100
-      end
-
-      admin.create_instance(
-        parent: project_path,
-        instance_id: config[:instance],
-        instance:
-      ).wait_until_done!
+      admin = CloudSpannerAdmin.new(config)
+      admin.ensure_instance!
     end
   end
 
@@ -79,6 +52,19 @@ namespace :spanner do
             execute insert_versions_sql(inserting)
           end
         end
+
+        def insert_versions_sql(versions)
+          sm_table = quote_table_name(schema_migration.table_name)
+
+          if versions.is_a?(Array)
+            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
+            sql << versions.reverse.map { |v| "(#{quote(v.to_s)})" }.join(",\n")
+            sql << ';'
+            sql
+          else
+            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions.to_s)});"
+          end
+        end
       end
 
       require "active_record/connection_adapters/abstract/schema_statements"
@@ -87,5 +73,8 @@ namespace :spanner do
   end
 end
 
+Rake::Task["db:create"].enhance(["spanner:instance:create"])
+
 Rake::Task["db:schema:dump"].enhance(["spanner:patch:schema_dump"])
 Rake::Task["db:schema:load"].enhance(["spanner:patch:schema_load"])
+Rake::Task["db:test:load_schema"].enhance(["spanner:patch:schema_load"])
